@@ -5,7 +5,7 @@ import os, time, json, io
 from src.ClsChatBot import ChatRobotOpenRouter
 
 
-__version__ = "Beta V0.0.4"
+__version__ = "Beta V0.0.5"
 env_path = os.path.abspath(".")
 
 chatbot = ChatRobotOpenRouter()
@@ -88,11 +88,11 @@ def main():
                                                 on_change=set_reload_mode)
             aa_llm_model = st.selectbox(label="`1. LLM Model`",
                                         options=["openchat/openchat-7b:free",
-                                                 "meta-llama/llama-3-8b-instruct:free",
-                                                 "mistralai/mistral-7b-instruct:free",
-                                                 "meta-llama/llama-3-70b-instruct",
-                                                 "mistralai/mixtral-8x7b-instruct",
-                                                 "deepseek/deepseek-coder",
+                                                 "meta-llama/llama-3.2-11b-vision-instruct:free",
+                                                 "meta-llama/llama-3.2-90b-vision-instruct",
+                                                 "mistralai/mixtral-8x22b-instruct",
+                                                 "qwen/qwen-2.5-72b-instruct",
+                                                 "deepseek/deepseek-chat",
                                                  "openai/gpt-4o-mini",
                                                  "openai/gpt-4o"
                                                  ],
@@ -109,6 +109,10 @@ def main():
                 st.session_state["OpenAvatarImg"] = "./img/logo/mistral-logo.png"
             elif "openai" in aa_llm_model:
                 st.session_state["OpenAvatarImg"] = "./img/logo/openai-logo.png"
+            elif "deepseek" in aa_llm_model:
+                st.session_state["OpenAvatarImg"] = "./img/logo/deepseek-logo.png"
+            elif "qwen" in aa_llm_model:
+                st.session_state["OpenAvatarImg"] = "./img/logo/qwen-logo.png"
             else:
                 st.session_state["OpenAvatarImg"] = "assistant"
             aa_temperature = st.selectbox(label="`2. Temperature (0~1)`",
