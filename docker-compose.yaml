@@ -1,6 +1,7 @@
 services:
   openChat:
     image: showjimzc/openchat:latest
+    pull_policy: always
     container_name: openChat
     environment:
       - TZ=Asia/Shanghai
