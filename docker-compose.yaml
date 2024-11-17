@@ -1,0 +1,11 @@
+services:
+  openChat:
+    image: showjimzc/openchat:latest
+    container_name: openChat
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /home/jerry/setting:/app/setting
+    restart: always
+    ports:
+      - 8504:8501
