@@ -5,7 +5,7 @@ import os, time, json, io
 from src.ClsChatBot import ChatRobotOpenRouter
 
 
-__version__ = "Beta V0.0.9"
+__version__ = "Beta V0.0.9.1"
 env_path = os.path.abspath(".")
 
 chatbot = ChatRobotOpenRouter()
