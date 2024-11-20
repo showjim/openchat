@@ -5,7 +5,7 @@ import os, time, json, io
 from src.ClsChatBot import ChatRobotOpenRouter
 
 
-__version__ = "Beta V0.0.9.2"
+__version__ = "Beta V0.0.9.3"
 env_path = os.path.abspath(".")
 
 chatbot = ChatRobotOpenRouter()
@@ -115,7 +115,7 @@ def main():
             elif "qwen" in aa_llm_model:
                 st.session_state["OpenAvatarImg"] = "./img/logo/qwen-logo.png"
             elif "claude" in aa_llm_model:
-                st.session_state["OpenAvatarImg"] = "./img/logo/claude-logo.png"
+                st.session_state["OpenAvatarImg"] = "./img/logo/Claude-logo.png"
             else:
                 st.session_state["OpenAvatarImg"] = "assistant"
             aa_temperature = st.selectbox(label="`2. Temperature (0~1)`",
