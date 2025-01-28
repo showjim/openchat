@@ -7,6 +7,7 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - /home/jerry/setting:/app/setting
+      - /home/jerry/workDir:/app/workDir
     restart: always
     ports:
       - 8504:8501
