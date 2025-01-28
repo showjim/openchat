@@ -29,7 +29,7 @@ RUN pip install --no-cache-dir -r requirements.txt # -i https://pypi.tuna.tsingh
 EXPOSE 8501
 
 # 运行 Streamlit 应用
-CMD ["streamlit", "run", "OpenChat.py"]
+CMD ["streamlit", "run", "HomePage.py"]
 
 # 健康检查
 HEALTHCHECK --interval=5m --timeout=3s \

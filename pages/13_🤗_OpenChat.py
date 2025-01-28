@@ -3,17 +3,16 @@ import hmac
 import streamlit as st
 import os, time, json, io
 from src.ClsChatBot import ChatRobotOpenRouter
+from HomePage import __version__
 
 
-__version__ = "Beta V0.0.9.3"
-env_path = os.path.abspath(".")
+env_path = os.path.abspath("..")
 
 chatbot = ChatRobotOpenRouter()
 chatbot.setup_env("./setting/key.txt", "./setting/config.json")
 client = chatbot.initial_llm()
 
 
-st.set_page_config(page_title="OpenChat - Chatbot With Variable LLMs")
 
 
 def set_reload_mode():
