@@ -31,11 +31,12 @@ import faiss
 # dimensions of nomic-embed-text
 d = 768 #1536
 faiss_index = faiss.IndexFlatL2(d)
-global BASE_URL # = 'http://127.0.0.1:11434/'
+BASE_URL = 'http://127.0.0.1:11434/'
 
 
 @st.cache_resource
 def load_llm(model: str = "deepseek-r1:1.5b", temperature: float = 0.2):
+    global BASE_URL
     llm = Ollama(model=model, request_timeout=120.0, temperature=temperature,base_url=BASE_URL)
     return llm
 
@@ -156,6 +157,7 @@ def main():
             "Select Base URL",
             ("http://localhost:11434/", "http://ollama:11434/", "http://127.0.0.1:11434/"),
         )
+        global BASE_URL
         BASE_URL = option
         client = openai.OpenAI(
             base_url=BASE_URL + 'v1/',
