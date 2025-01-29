@@ -146,7 +146,7 @@ def main():
 
     session_id = st.session_state.id
     client = openai.OpenAI(
-        base_url='http://localhost:11434/v1/',
+        base_url='http://ollama:11434/v1/',
 
         # required but ignored
         api_key='ollama',
