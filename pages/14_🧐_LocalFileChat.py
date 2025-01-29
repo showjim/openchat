@@ -155,16 +155,22 @@ def main():
         # select Ollama base url
         option = st.selectbox(
             "Select Base URL",
-            ("http://localhost:11434/", "http://ollama:11434/", "http://127.0.0.1:11434/"),
+            ("http://localhost:11434/", "http://ollama:11434/", "http://127.0.0.1:11434/", "Another option..."),
         )
         global BASE_URL
-        BASE_URL = option
+        # Create text input for user entry
+        if option == "Another option...":
+            BASE_URL = st.text_input("Enter your other option...")
+        else:
+            BASE_URL = option
+
         client = openai.OpenAI(
             base_url=BASE_URL + 'v1/',
 
             # required but ignored
             api_key='ollama',
         )
+
         list_completion = client.models.list()
         models = [model.id for model in list_completion.data]
         model = st.selectbox(
