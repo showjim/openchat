@@ -31,7 +31,7 @@ import faiss
 # dimensions of nomic-embed-text
 d = 768 #1536
 faiss_index = faiss.IndexFlatL2(d)
-BASE_URL = 'http://ollama:11434/v1/'
+BASE_URL = 'http://127.0.0.1:11434/'
 
 
 @st.cache_resource
@@ -147,7 +147,7 @@ def main():
 
     session_id = st.session_state.id
     client = openai.OpenAI(
-        base_url=BASE_URL,
+        base_url=BASE_URL + 'v1/',
 
         # required but ignored
         api_key='ollama',
