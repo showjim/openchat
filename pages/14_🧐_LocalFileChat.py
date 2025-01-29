@@ -146,17 +146,23 @@ def main():
         st.session_state["LocalVectorDB"] = None
 
     session_id = st.session_state.id
-    client = openai.OpenAI(
-        base_url=BASE_URL + 'v1/',
-
-        # required but ignored
-        api_key='ollama',
-    )
     work_path = os.path.abspath('.')
     workDir = os.path.join(work_path, "workDir")
 
     with st.sidebar:
         st.header(f"RAG Setting")
+        # select Ollama base url
+        option = st.selectbox(
+            "Select Base URL",
+            ("http://localhost:11434/", "http://ollama:11434/", "http://127.0.0.1:11434/"),
+        )
+        BASE_URL = option
+        client = openai.OpenAI(
+            base_url=BASE_URL + 'v1/',
+
+            # required but ignored
+            api_key='ollama',
+        )
         list_completion = client.models.list()
         models = [model.id for model in list_completion.data]
         model = st.selectbox(
