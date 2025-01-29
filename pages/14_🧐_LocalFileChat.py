@@ -31,11 +31,12 @@ import faiss
 # dimensions of nomic-embed-text
 d = 768 #1536
 faiss_index = faiss.IndexFlatL2(d)
+BASE_URL = 'http://ollama:11434/v1/'
 
 
 @st.cache_resource
 def load_llm(model: str = "deepseek-r1:1.5b", temperature: float = 0.2):
-    llm = Ollama(model=model, request_timeout=120.0, temperature=temperature)
+    llm = Ollama(model=model, request_timeout=120.0, temperature=temperature,base_url=BASE_URL)
     return llm
 
 
@@ -146,7 +147,7 @@ def main():
 
     session_id = st.session_state.id
     client = openai.OpenAI(
-        base_url='http://ollama:11434/v1/',
+        base_url=BASE_URL,
 
         # required but ignored
         api_key='ollama',
@@ -167,7 +168,7 @@ def main():
         # setup llm & embedding model
         llm = load_llm(model)
         Settings.llm = llm
-        embed_model = OllamaEmbedding(model_name="nomic-embed-text:latest")
+        embed_model = OllamaEmbedding(model_name="nomic-embed-text:latest", base_url=BASE_URL)
         # Creating an index over loaded data
         Settings.embed_model = embed_model
 
