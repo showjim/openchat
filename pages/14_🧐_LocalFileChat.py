@@ -1,9 +1,5 @@
 # Adapted from https://docs.streamlit.io/knowledge-base/tutorials/build-conversational-apps#build-a-simple-chatbot-gui-with-streaming
-import os
-
-import base64
-import gc
-import uuid
+import os, base64, gc, uuid, re
 from typing import List
 
 import openai, glob
@@ -271,8 +267,14 @@ def main():
 
     # Display chat messages from history on app rerun
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        if message["role"] == "assistant":
+            with st.chat_message(message["role"]):
+                with st.expander("See thinking"):
+                    st.markdown(message["content"]["thinking"])
+                st.markdown(message["content"]["answers"])
+        else:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
 
     # Accept user input
     if prompt := st.chat_input("What's up?"):
@@ -283,7 +285,8 @@ def main():
             st.markdown(prompt)
 
         # Display assistant response in chat message container
-        with st.chat_message("assistant"):
+        with (st.chat_message("assistant")):
+            thinking_placeholder = st.empty()
             message_placeholder = st.empty()
             full_response = ""
             with st.spinner("preparing answer"):
@@ -294,13 +297,19 @@ def main():
                     full_response += chunk
                     message_placeholder.markdown(full_response + "▌")
 
-                # full_response = query_engine.query(prompt)
-
-                message_placeholder.markdown(full_response)
+                resp_thinking = ""
+                resp_answer = ""
+                if '<think>' in full_response and '</think>' in full_response:
+                    split_resp = re.split('<think>|</think>', full_response)
+                    resp_thinking = split_resp[1]
+                    resp_answer = split_resp[2]
+                    with thinking_placeholder.expander("See thinking"):
+                        st.markdown(resp_thinking)
+                message_placeholder.markdown(resp_answer)
                 # st.session_state.context = ctx
 
         # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
+        st.session_state.messages.append({"role": "assistant", "content": {"answers": resp_answer, "thinking": resp_thinking}})
 
 if __name__ == "__main__":
     main()
