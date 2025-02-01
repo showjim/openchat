@@ -43,3 +43,8 @@ jobs:
             showjimzc/openchat:${{ env.APP_VERSION }}
             showjimzc/openchat:latest
       # run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+
+    # Trigger redeploy on dokploy => project webhooks settings
+    - name: Trigger dokploy redeploy
+      run: |
+        curl -X GET https://dokploy.taishanstone.top/api/deploy/IgNlk_EcuGF_H898KLIPR
