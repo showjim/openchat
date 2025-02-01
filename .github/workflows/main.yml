@@ -47,4 +47,4 @@ jobs:
     # Trigger redeploy on dokploy => project webhooks settings
     - name: Trigger dokploy redeploy
       run: |
-        curl -X GET https://dokploy.taishanstone.top/api/deploy/IgNlk_EcuGF_H898KLIPR
+          curl -X GET https://dokploy.taishanstone.top/api/deploy/f1bV5wSNJkFCEGh0WQzSs
