@@ -89,10 +89,10 @@ def main():
                                         options=["openchat/openchat-7b:free",
                                                  "anthropic/claude-3-5-haiku",
                                                  "anthropic/claude-3.5-sonnet",
-                                                 "meta-llama/llama-3.2-90b-vision-instruct",
-                                                 "mistralai/mistral-nemo",
                                                  "qwen/qwen-2.5-coder-32b-instruct",
                                                  "deepseek/deepseek-chat",
+                                                 "deepseek/deepseek-r1",
+                                                 "deepseek/deepseek-r1:free",
                                                  "openai/gpt-4o-mini",
                                                  "openai/gpt-4o"
                                                  ],
@@ -201,10 +201,13 @@ def main():
                         temperature=st.session_state["FreeChatSetting"]["temperature"],
                         stream=True,
                     )
+                    reasoning_content = ""
                     for chunk in response:
                         # process normal response and tool_calls response
                         if len(chunk.choices) > 0:
                             deltas = chunk.choices[0].delta
+                            # if deltas.reasoning_content:
+                            #     reasoning_content += deltas.reasoning_content
                             if deltas.content is not None:
                                 full_response += deltas.content  # ["answer"]  # .choices[0].delta.get("content", "")
                                 time.sleep(0.001)
