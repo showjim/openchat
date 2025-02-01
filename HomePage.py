@@ -13,7 +13,7 @@ st.sidebar.success("Select a page above.")
 
 st.write(
     """
-    # Open Chatbot Playground 🛝🎈
+    ### Open Chatbot Playground 🛝🎈
     This app is an OpenRouter powered chatbot built using:
     - [Streamlit](https://streamlit.io/)
     - [Ollama](https://ollama.com/)

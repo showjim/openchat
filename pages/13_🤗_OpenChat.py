@@ -3,7 +3,7 @@ import hmac
 import streamlit as st
 import os, time, json, io
 from src.ClsChatBot import ChatRobotOpenRouter
-from HomePage import __version__
+# from HomePage import __version__
 
 
 env_path = os.path.abspath("..")
@@ -48,7 +48,7 @@ def check_password():
 
 def main():
     index = 0
-    st.title("🤗Open Chat Web-UI App " + __version__)
+    st.title("🤗Open Chat Web-UI App ")
     st.caption('Powered by Streamlit, written by Chao Zhou')
     st.subheader("", divider='rainbow')
 
