@@ -1,7 +1,7 @@
 # Contents of ~/my_app/main_page.py
 import streamlit as st
 
-__version__ = "V0.1.7"
+__version__ = "V0.1.8"
 
 st.set_page_config(
     page_title="Open Chatbot Playground",
@@ -10,7 +10,7 @@ st.set_page_config(
 st.title("🛝🎈Open Chatbot Playground Web-UI App " + __version__)
 
 st.sidebar.success("Select a page above.")
-
+st.subheader("", divider='rainbow')
 st.write(
     """
     ### Open Chatbot Playground 🛝🎈
