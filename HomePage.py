@@ -1,7 +1,7 @@
 # Contents of ~/my_app/main_page.py
 import streamlit as st
 
-__version__ = "V0.1.9"
+__version__ = "V0.1.10"
 
 st.set_page_config(
     page_title="Open Chatbot Playground",

@@ -303,6 +303,8 @@ def main():
     with col2:
         st.button("Clear ↺", on_click=reset_chat)
 
+    st.subheader("", divider='rainbow')
+
     # Initialize chat history
     if "messages" not in st.session_state:
         reset_chat()
