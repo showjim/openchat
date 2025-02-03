@@ -42,17 +42,26 @@ jobs:
       # 通过 git 命令获取当前 tag 信息, 存入环境变量 APP_VERSION
       - name: Generate App Version
         run: echo APP_VERSION=`git describe --tags --always` >> $GITHUB_ENV
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            showjimzc/openchat
+            ghcr.io/${{ github.repository }}
       # 构建 Docker 并推送到 Docker hub
       - name: Build and push the Docker image - 1
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: true
-          tags: |
-            showjimzc/openchat:${{ env.APP_VERSION }}
-            showjimzc/openchat:latest
+#          tags: |
+#            showjimzc/openchat:${{ env.APP_VERSION }}
+#            showjimzc/openchat:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
         # run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
 
-      # Trigger redeploy on dokploy => project webhooks settings
-      - name: Trigger dokploy redeploy
-        run: |
-          curl -X POST "https://dokploy.taishanstone.top/api/deploy/f1bV5wSNJkFCEGh0WQzSs"
+#      # Trigger redeploy on dokploy => project webhooks settings
+#      - name: Trigger dokploy redeploy
+#        run: |
+#          curl -X POST "https://dokploy.taishanstone.top/api/deploy/f1bV5wSNJkFCEGh0WQzSs"
