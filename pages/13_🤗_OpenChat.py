@@ -78,7 +78,7 @@ async def call_openrouter(model:str, messages: List, temperature:float, max_toke
     }
 
     async with httpx.AsyncClient() as client:
-        async with client.stream("POST", url, headers=headers, json=payload) as response:
+        async with client.stream("POST", url, headers=headers, json=payload, timeout=60) as response:
             async for chunk in response.aiter_lines():
                 try:
                     if chunk.startswith("data: "):
