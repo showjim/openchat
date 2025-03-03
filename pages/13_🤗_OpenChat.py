@@ -169,9 +169,9 @@ def init_session_state():
     # Initialize chat history
     if "OpenChatMessages" not in st.session_state:
         st.session_state["OpenChatMessages"] = []
-    if "OpenChatMessagesDispay" not in st.session_state:
+    if "OpenChatMessagesDisplay" not in st.session_state:
         # this is a shadow of "OpenChatMessages" to keep image URL from Dalle3
-        st.session_state["OpenChatMessagesDispay"] = []
+        st.session_state["OpenChatMessagesDisplay"] = []
     if "current_topic_id" not in st.session_state:
         st.session_state.current_topic_id = None
     if "new_topic" not in st.session_state:
@@ -318,12 +318,14 @@ async def main():
 
             # initial the greeting
             initial_msg = "I'm OpenChatBot, How may I help you?"
-            st.session_state["OpenChatMessages"] = [
-                {"role": "system", "content": system_prompt}
-            ]
-            st.session_state["OpenChatMessagesDisplay"] = [
-                {"role": "system", "content": system_prompt}
-            ]
+
+            if len(st.session_state.OpenChatMessages) == 0 or st.session_state.OpenChatMessages[0]["role"] != "system":
+                st.session_state.OpenChatMessages.insert(0, {"role": "system", "content": system_prompt})
+                st.session_state.OpenChatMessagesDisplay.insert(0, {"role": "system", "content": system_prompt})
+            else:
+                st.session_state.OpenChatMessages[0]["content"] = system_prompt
+                st.session_state.OpenChatMessagesDisplay[0]["content"] = system_prompt
+
         if st.session_state["OpenChatReloadFlag"] == True:
             if "FreeChatSetting" not in st.session_state:
                 st.session_state["FreeChatSetting"] = {}
