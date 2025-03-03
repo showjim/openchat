@@ -260,12 +260,11 @@ async def main():
             aa_llm_model = st.selectbox(label="`1. LLM Model`",
                                         options=["openchat/openchat-7b:free",
                                                  "anthropic/claude-3-5-haiku",
-                                                 "anthropic/claude-3.5-sonnet",
+                                                 "anthropic/claude-3.7-sonnet",
                                                  "qwen/qwen-2.5-coder-32b-instruct",
                                                  "deepseek/deepseek-chat",
                                                  "deepseek/deepseek-r1",
                                                  "deepseek/deepseek-r1:free",
-                                                 "openai/gpt-4o-mini",
                                                  "openai/gpt-4o"
                                                  ],
                                         index=0,
