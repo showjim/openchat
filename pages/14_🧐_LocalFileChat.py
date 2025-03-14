@@ -99,7 +99,7 @@ def load_vectordbs(workDir:str, all_files: List[str]):
         index = load_single_vectordb(workDir, filename)
         # merge index with nodes
         nodes_dict = index.storage_context.docstore.docs
-        nodes = list(nodes_dict.values())
+        nodes.extend(list(nodes_dict.values()))
         # for doc_id, node in nodes_dict.items():
             # necessary to avoid re-calc of embeddings
             # node.embedding = embedding_dict[doc_id]
