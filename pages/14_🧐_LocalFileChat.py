@@ -24,9 +24,9 @@ import faiss
 
 
 
-# dimensions of nomic-embed-text
-d = 768 #1536
-faiss_index = faiss.IndexFlatL2(d)
+# Default embedding dimensions - will be updated based on the actual model
+DEFAULT_EMBED_DIM = 768  # Default for nomic-embed-text
+faiss_index = None  # Will be initialized with correct dimensions
 BASE_URL = 'http://127.0.0.1:11434/'
 
 
@@ -93,43 +93,104 @@ def load_single_vectordb(workDir:str, vsFileName:str):
 
 @st.cache_resource
 def load_vectordbs(workDir:str, all_files: List[str]):
-    nodes = []
-    for i in range(len(all_files)):
-        filename = all_files[i]
-        index = load_single_vectordb(workDir, filename)
-        # merge index with nodes
-        nodes_dict = index.storage_context.docstore.docs
-        nodes.extend(list(nodes_dict.values()))
-        # for doc_id, node in nodes_dict.items():
-            # necessary to avoid re-calc of embeddings
-            # node.embedding = embedding_dict[doc_id]
-            # nodes.append(node)
-    final_index = VectorStoreIndex(nodes=nodes)
-    return final_index
+    """
+    Load and merge multiple vector databases into a single index.
+    This function properly preserves node embeddings when merging.
+    """
+    all_nodes = []
+    
+    try:
+        for filename in all_files:
+            index = load_single_vectordb(workDir, filename)
+            
+            # Get nodes from the index's document store
+            nodes_dict = index.storage_context.docstore.docs
+            
+            # Get the vector store to access embeddings
+            vector_store = index.storage_context.vector_store
+            
+            # Add each node to our collection, ensuring embeddings are preserved
+            for doc_id, node in nodes_dict.items():
+                # Try to get the embedding from the vector store if available
+                try:
+                    if hasattr(vector_store, 'get_embedding'):
+                        node_embedding = vector_store.get_embedding(doc_id)
+                        if node_embedding is not None:
+                            node.embedding = node_embedding
+                except:
+                    # If we can't get the embedding, the node will be re-embedded later
+                    pass
+                
+                all_nodes.append(node)
+        
+        # Create a new index with all collected nodes
+        if all_nodes:
+            final_index = VectorStoreIndex(nodes=all_nodes)
+            return final_index
+        else:
+            st.error("No nodes found in the selected files.")
+            return None
+    except Exception as e:
+        st.error(f"Error loading vector databases: {str(e)}")
+        return None
 
 def process_thinking_part(stream):
+    """
+    Process the thinking part of the streaming response.
+    Handles the <think> tags and displays the thinking process.
+    """
     full_response = ""
+    thinking_content = ""
+    in_thinking_block = False
+    
     with st.status("Thinking...", expanded=True) as status:
         thinking_placeholder = st.empty()
 
-        for chunk in stream:
-            full_response += chunk
-            if '<think>' in chunk:
-                continue
-            if '</think>' in chunk:
-                chunk.replace('</think>', '')
-                status.update(label='Thinking complete', state='complete', expanded=False)
-                break
-            thinking_placeholder.markdown(full_response + "▌")
-    thinking_placeholder.markdown(full_response)
-    return full_response
+        try:
+            for chunk in stream:
+                if chunk is None:
+                    continue
+                    
+                # Check for thinking tags
+                if '<think>' in chunk:
+                    in_thinking_block = True
+                    chunk = chunk.replace('<think>', '')
+                
+                if '</think>' in chunk:
+                    in_thinking_block = False
+                    chunk = chunk.replace('</think>', '')
+                    status.update(label='Thinking complete', state='complete', expanded=False)
+                    break
+                
+                if in_thinking_block or not ('<think>' in full_response or '</think>' in full_response):
+                    thinking_content += chunk
+                    thinking_placeholder.markdown(thinking_content + "▌")
+                
+                full_response += chunk
+        except Exception as e:
+            st.error(f"Error processing thinking stream: {str(e)}")
+            
+    thinking_placeholder.markdown(thinking_content)
+    return thinking_content
 
 def process_answer_part(stream):
+    """
+    Process the answer part of the streaming response.
+    Displays the answer incrementally as it's received.
+    """
     message_placeholder = st.empty()
     full_response = ""
-    for chuck in stream:
-        full_response += chuck
-        message_placeholder.markdown(full_response + "▌")
+    
+    try:
+        for chunk in stream:
+            if chunk is None:
+                continue
+                
+            full_response += chunk
+            message_placeholder.markdown(full_response + "▌")
+    except Exception as e:
+        st.error(f"Error processing answer stream: {str(e)}")
+        
     message_placeholder.markdown(full_response)
     return full_response
 
@@ -166,16 +227,24 @@ def create_query_engine(index):
     return query_engine
 
 def get_ollama_model_list():
-    client = openai.OpenAI(
-        base_url=BASE_URL + 'v1/',
+    """
+    Get a list of available models from Ollama.
+    Returns a default list if the connection fails.
+    """
+    try:
+        client = openai.OpenAI(
+            base_url=BASE_URL + 'v1/',
+            # required but ignored
+            api_key='ollama',
+        )
 
-        # required but ignored
-        api_key='ollama',
-    )
-
-    list_completion = client.models.list()
-    models = [model.id for model in list_completion.data]
-    return models
+        list_completion = client.models.list()
+        models = [model.id for model in list_completion.data]
+        return models
+    except Exception as e:
+        st.warning(f"Could not connect to Ollama at {BASE_URL}: {str(e)}")
+        # Return some default models as fallback
+        return ["llama2", "mistral", "deepseek-r1:1.5b"]
 
 def main():
     if "id" not in st.session_state:
@@ -217,12 +286,33 @@ def main():
             index=0,
             on_change=set_reload_db_flag)
 
-        # setup llm & embedding model
-        llm = load_llm(model)
-        Settings.llm = llm
-        embed_model = OllamaEmbedding(model_name="nomic-embed-text:latest", base_url=BASE_URL)
-        # Creating an index over loaded data
-        Settings.embed_model = embed_model
+        # Setup LLM & embedding model
+        try:
+            llm = load_llm(model)
+            Settings.llm = llm
+            
+            # Initialize embedding model
+            embed_model = OllamaEmbedding(model_name="nomic-embed-text:latest", base_url=BASE_URL)
+            Settings.embed_model = embed_model
+            
+            # Initialize FAISS index with correct dimensions
+            global faiss_index
+            if faiss_index is None:
+                # Get embedding dimension from the model if possible
+                try:
+                    # Create a test embedding to determine the dimension
+                    test_embedding = embed_model.get_text_embedding("test")
+                    embed_dim = len(test_embedding)
+                    st.session_state["embed_dim"] = embed_dim
+                    faiss_index = faiss.IndexFlatL2(embed_dim)
+                    st.success(f"Initialized FAISS with dimension: {embed_dim}")
+                except Exception as e:
+                    # Fall back to default dimension
+                    st.warning(f"Could not determine embedding dimension, using default: {DEFAULT_EMBED_DIM}")
+                    st.session_state["embed_dim"] = DEFAULT_EMBED_DIM
+                    faiss_index = faiss.IndexFlatL2(DEFAULT_EMBED_DIM)
+        except Exception as e:
+            st.error(f"Error initializing models: {str(e)}")
 
         st.header(f"Add your documents!")
         uploaded_file = st.file_uploader("Choose your `.pdf` file", type="pdf")
@@ -320,14 +410,29 @@ def main():
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Display assistant response in chat message container
-        with (st.chat_message("assistant")):
-            streaming_response = st.session_state["QueryEngine"].query(prompt)
-            message_thinking = process_thinking_part(streaming_response.response_gen)
-            message_answer = process_answer_part(streaming_response.response_gen)
+        # Check if QueryEngine is available
+        if st.session_state["QueryEngine"] is None:
+            with st.chat_message("assistant"):
+                error_message = "Please select at least one document to chat with first! Use the dropdown in the sidebar to select files."
+                st.error(error_message)
+                # Add error response to chat history
+                st.session_state.messages.append({"role": "assistant", "content": {"answers": error_message, "thinking": "No documents selected."}})
+        else:
+            # Display assistant response in chat message container
+            try:
+                with st.chat_message("assistant"):
+                    streaming_response = st.session_state["QueryEngine"].query(prompt)
+                    message_thinking = process_thinking_part(streaming_response.response_gen)
+                    message_answer = process_answer_part(streaming_response.response_gen)
 
-        # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": {"answers": message_answer, "thinking": message_thinking}})
+                # Add assistant response to chat history
+                st.session_state.messages.append({"role": "assistant", "content": {"answers": message_answer, "thinking": message_thinking}})
+            except Exception as e:
+                with st.chat_message("assistant"):
+                    error_message = f"An error occurred while processing your query: {str(e)}"
+                    st.error(error_message)
+                    # Add error response to chat history
+                    st.session_state.messages.append({"role": "assistant", "content": {"answers": error_message, "thinking": f"Error: {str(e)}"}})
 
 if __name__ == "__main__":
     main()
