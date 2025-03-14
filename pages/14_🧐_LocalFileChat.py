@@ -5,14 +5,14 @@ from typing import List
 import openai, glob
 from pathlib import Path
 
-from llama_index.core import Settings
 from llama_index.llms.ollama import Ollama
-from llama_index.core import PromptTemplate
 from llama_index.embeddings.ollama import OllamaEmbedding #HuggingFaceEmbedding
 from llama_index.core import (
+    Settings, PromptTemplate,
     VectorStoreIndex, ServiceContext,
     SimpleDirectoryReader, StorageContext,
-    load_index_from_storage)
+    load_index_from_storage,
+    SummaryIndex, Document)
 from llama_index.core.vector_stores.simple import (
     DEFAULT_VECTOR_STORE,
     NAMESPACE_SEP,
@@ -80,6 +80,16 @@ def get_all_files_list(source_dir, ext:str = "faiss"):
             result.append(file_name)
     return result
 
+def get_subfolder_names(source_dir):
+    """
+    Get all sub-folder names in the specified directory and return them as a list.
+
+    :param source_dir: The directory to search for sub-folders.
+    :return: A list of sub-folder names.
+    """
+    subfolders = [f.name for f in os.scandir(source_dir) if f.is_dir()]
+    return subfolders
+
 @st.cache_resource
 def load_single_vectordb(workDir:str, vsFileName:str):
     vsFilePath = os.path.join(workDir, f"{vsFileName}")
@@ -98,41 +108,25 @@ def load_vectordbs(workDir:str, all_files: List[str]):
     This function properly preserves node embeddings when merging.
     """
     all_nodes = []
-    
-    try:
-        for filename in all_files:
-            index = load_single_vectordb(workDir, filename)
-            
-            # Get nodes from the index's document store
-            nodes_dict = index.storage_context.docstore.docs
-            
-            # Get the vector store to access embeddings
-            vector_store = index.storage_context.vector_store
-            
-            # Add each node to our collection, ensuring embeddings are preserved
-            for doc_id, node in nodes_dict.items():
-                # Try to get the embedding from the vector store if available
-                try:
-                    if hasattr(vector_store, 'get_embedding'):
-                        node_embedding = vector_store.get_embedding(doc_id)
-                        if node_embedding is not None:
-                            node.embedding = node_embedding
-                except:
-                    # If we can't get the embedding, the node will be re-embedded later
-                    pass
-                
-                all_nodes.append(node)
-        
-        # Create a new index with all collected nodes
-        if all_nodes:
-            final_index = VectorStoreIndex(nodes=all_nodes)
-            return final_index
+    final_index = None
+    for subDir in all_files:
+        subDir = os.path.join(workDir, f"{subDir}")
+        # load index from disk
+        vector_store = FaissVectorStore.from_persist_dir(subDir)
+        storage_context = StorageContext.from_defaults(
+            vector_store=vector_store, persist_dir=subDir
+        )
+        index = load_index_from_storage(storage_context=storage_context)
+
+        # Get nodes from the index's document store
+        nodes_dict = index.docstore.docs.values()
+        nodes = list(nodes_dict)
+        if final_index == None:
+            final_index = index
         else:
-            st.error("No nodes found in the selected files.")
-            return None
-    except Exception as e:
-        st.error(f"Error loading vector databases: {str(e)}")
-        return None
+            final_index.insert_nodes(nodes)
+
+    return final_index
 
 def process_thinking_part(stream):
     """
@@ -348,9 +342,9 @@ def main():
 
                     # Store the index in local index file
                     ext = os.path.splitext(uploaded_file.name)
-                    vsFileName = f"{ext[0]}.faiss"
-                    vsFilePath = os.path.join(workDir, f"{DEFAULT_VECTOR_STORE}{NAMESPACE_SEP}{vsFileName}")
-                    index.storage_context.persist(persist_dir=workDir, vector_store_fname=vsFileName)
+                    vsFileName = f"{ext[0]}"
+                    dbWorkDir = os.path.join(workDir, f"{vsFileName}")
+                    index.storage_context.persist(persist_dir=dbWorkDir)
 
                     # Inform the user that the file is processed and Display the PDF uploaded
                     st.success("PDF to Vector DB Done!")
@@ -359,7 +353,8 @@ def main():
                     st.error(f"An error occurred: {e}")
                     st.stop()
         # select the specified index base(s)
-        index_file_list = get_all_files_list(workDir, "faiss")
+        # index_file_list = get_all_files_list(workDir, "faiss")
+        index_file_list = get_subfolder_names(workDir)
         options = st.multiselect('2.What file do you want to exam?',
                                  index_file_list,
                                  on_change=set_reload_db_flag)
