@@ -266,6 +266,7 @@ async def main():
                                                  "deepseek/deepseek-r1",
                                                  "deepseek/deepseek-chat-v3-0324",
                                                  "deepseek/deepseek-chat-v3-0324:free",
+                                                 "openai/gpt-4o-mini-search-preview",
                                                  "openai/gpt-4o"
                                                  ],
                                         index=0,
