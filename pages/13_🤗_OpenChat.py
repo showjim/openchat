@@ -259,12 +259,13 @@ async def main():
                                                 on_change=set_reload_mode)
             aa_llm_model = st.selectbox(label="`1. LLM Model`",
                                         options=["openchat/openchat-7b:free",
+                                                 "mistralai/mistral-small-3.1-24b-instruct",
                                                  "anthropic/claude-3-5-haiku",
                                                  "anthropic/claude-3.7-sonnet",
                                                  "qwen/qwen-2.5-coder-32b-instruct",
-                                                 "deepseek/deepseek-chat",
                                                  "deepseek/deepseek-r1",
-                                                 "deepseek/deepseek-r1:free",
+                                                 "deepseek/deepseek-chat-v3-0324",
+                                                 "deepseek/deepseek-chat-v3-0324:free",
                                                  "openai/gpt-4o"
                                                  ],
                                         index=0,
