@@ -294,10 +294,9 @@ async def main():
                                                   options=["0", "0.2", "0.4", "0.6", "0.8", "1.0"],
                                                   index=1,
                                                   on_change=set_reload_flag)
-            if "16k" in aa_llm_model:
-                aa_max_resp_max_val = 16 * 1024
-            else:
-                aa_max_resp_max_val = 4096
+
+            aa_max_resp_max_val = 16 * 1024
+
             aa_max_resp = st.slider(label="`3. Max response`",
                                             min_value=256,
                                             max_value=aa_max_resp_max_val,
