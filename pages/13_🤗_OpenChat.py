@@ -298,9 +298,9 @@ async def main():
             aa_max_resp_max_val = 16 * 1024
 
             aa_max_resp = st.slider(label="`3. Max response`",
-                                            min_value=256,
+                                            min_value=1024,
                                             max_value=aa_max_resp_max_val,
-                                            value=512,
+                                            value=4*1024,
                                             on_change=set_reload_flag)
             aa_context_msg = st.select_slider(label="`4. Context message`",
                                                       options=[1, 5, 10, 20],
