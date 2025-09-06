@@ -615,13 +615,15 @@ class ChatRobotAzure(ChatRobotBase):
                                                     region=os.environ.get('SPEECH_REGION'))
         return client
 
-    def text_2_speech(self, text: str, voice_name: str):
+    def text_2_speech(self, text: str, voice_name: str, file_name: str = None):
         # The language of the voice that speaks.
         # the remote app service the default audio config needs to be set to an audio file instead of default as in
         # local machine it cannot default to a speaker in this case.
         # file_name = "outputaudio.wav"
-        # audio_config = speechsdk.audio.AudioOutputConfig(filename=file_name)
-        audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
+        if file_name is not None:
+            audio_config = speechsdk.audio.AudioOutputConfig(filename=file_name)
+        else:
+            audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
         if voice_name == "None":
             voice_name = "zh-CN-XiaoyouNeural"  # "zh-CN-XiaoyiNeural"
         self.speech_config.speech_synthesis_voice_name = voice_name  # "zh-CN-XiaoyiNeural"  # "zh-CN-YunxiaNeural"

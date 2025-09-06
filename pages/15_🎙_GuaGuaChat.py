@@ -22,6 +22,11 @@ tools = chatbot_or.initial_tools()
 st.set_page_config(page_title="FreeChat - Chatbot With Native APIs")
 
 
+def tts_speak(ply_btn_placeholder, text: str, voice_name: str, file_name: str = None):
+    chatbot_azure.text_2_speech(text, voice_name, file_name)
+    if file_name is not None:
+        st.audio(file_name, format='audio/wav', autoplay=True)
+
 # Database connection context manager
 class DatabaseConnection:
     def __init__(self, db_name):
@@ -375,6 +380,7 @@ def main():
             # Since Azure Whisper cannot be used any more so...
             # I have to switch to SiliconFlow STT
             speech_txt = chatbot_siliconflow.stt(audio_siliconflow)
+            audio_siliconflow = None
 
         # upload image file & create index base
         st.subheader("3. Vision")
@@ -459,8 +465,9 @@ def main():
                     with st.chat_message(name=message["role"], avatar=st.session_state["AvatarImg"]):
                         for content in message["content"]:
                             st.markdown(content["text"])
-                            st.button(label="Play", key="history" + str(index), on_click=chatbot_azure.text_2_speech,
-                                      args=(str(content["text"]).replace("*", "").replace("#", ""), aa_voice_name,))
+                            ply_btn_placeholder = st.empty()
+                            st.button(label="Play", key="history" + str(index), on_click=tts_speak,
+                                      args=(ply_btn_placeholder, str(content["text"]).replace("*", "").replace("#", ""), aa_voice_name, "outputaudio.wav"))
                             index += 1
                         if "image" in message.keys():
                             st.image(message["image"], width=256)
@@ -480,6 +487,8 @@ def main():
             # Display user message in chat message container
             with st.chat_message("user"):
                 st.markdown(prompt)
+            speech_txt = ""
+            prompt = ""
             # Display assistant response in chat message container
             with st.chat_message("assistant", avatar=st.session_state["AvatarImg"]):
                 message_placeholder = st.empty()
@@ -619,10 +628,11 @@ def main():
                     # Save AI response to database
                     save_chat_to_db(st.session_state.current_topic_id, "assistant", "text", full_response)
                 print("AI: " + full_response)
+                ply_btn_placeholder = st.empty()
                 if aa_voice_name != "None":
-                    chatbot_azure.text_2_speech(full_response.replace("*", "").replace("#", ""), aa_voice_name)
-                btn_placeholder.button(label="Play", key="current", on_click=chatbot_azure.text_2_speech,
-                                       args=(full_response.replace("*", "").replace("#", ""), aa_voice_name,))
+                    tts_speak(ply_btn_placeholder, full_response.replace("*", "").replace("#", ""), aa_voice_name, "outputaudio.wav")
+                btn_placeholder.button(label="Play", key="current", on_click=tts_speak,
+                                       args=(ply_btn_placeholder, full_response.replace("*", "").replace("#", ""), aa_voice_name, "outputaudio.wav"))
 
 
 if __name__ == "__main__":
