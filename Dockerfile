@@ -3,7 +3,7 @@
 # FROM --platform=linux/amd64 python:3.8
 
 # bookworm does not support azure-cognitiveservices-speech
-FROM python:3.11-slim-bullseye
+FROM python:3.11-bullseye
 
 # 设置工作目录
 WORKDIR /app
